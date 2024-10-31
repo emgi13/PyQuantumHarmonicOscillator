@@ -66,7 +66,9 @@ coeffs = Phi.H * Psi
 sort_inds = np.argsort(np.abs(coeffs.A1))[::-1]
 temp_coeffs = coeffs[sort_inds]
 
-ts, dt = np.linspace(0, 0.1, 1000, retstep=True)
+ts, dt = np.linspace(0, 0.1, 300, retstep=True)
+
+M = la.expm(-1j * H_new * dt / hbar)
 
 
 def evolve(co: np.matrix, t: float):
@@ -74,7 +76,7 @@ def evolve(co: np.matrix, t: float):
 
 
 fig, ax = plt.subplots()
-(line,) = ax.plot(xs, np.abs(Phi * evolve(coeffs, ts[0])), color="b")
+(line,) = ax.plot(xs, np.abs(Phi * coeffs), color="b")
 ax.set_ylim(0, 0.16)
 ax.set_title("Animated Plot")
 ax.set_xlabel("x")
@@ -82,8 +84,10 @@ ax.set_ylabel("Amplitude")
 
 
 # Update function for animation
-def update(frame: int):
-    line.set_ydata(np.abs(Phi * evolve(coeffs, ts[frame])))
+def update(_frame: int):
+    global coeffs
+    coeffs = M * coeffs
+    line.set_ydata(np.abs(Phi * coeffs))
     return (line,)
 
 
