@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 from scipy import linalg as la
 
 
@@ -65,14 +66,28 @@ coeffs = Phi.H * Psi
 sort_inds = np.argsort(np.abs(coeffs.A1))[::-1]
 temp_coeffs = coeffs[sort_inds]
 
-ts, dt = np.linspace(0, 0.1, 100, retstep=True)
+ts, dt = np.linspace(0, 0.1, 1000, retstep=True)
 
 
 def evolve(co: np.matrix, t: float):
     return la.expm(-1j * H_new * t / hbar) * co
 
 
-for t in ts:
-    plt.plot(xs, np.abs(Phi * evolve(coeffs, t)))
+fig, ax = plt.subplots()
+(line,) = ax.plot(xs, np.abs(Phi * evolve(coeffs, ts[0])), color="b")
+ax.set_ylim(0, 0.16)
+ax.set_title("Animated Plot")
+ax.set_xlabel("x")
+ax.set_ylabel("Amplitude")
 
+
+# Update function for animation
+def update(frame: int):
+    line.set_ydata(np.abs(Phi * evolve(coeffs, ts[frame])))
+    return (line,)
+
+
+# Create the animation
+ani = FuncAnimation(fig, update, frames=len(ts), blit=True, interval=100)
+# Show the animation
 plt.show()
