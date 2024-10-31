@@ -39,7 +39,7 @@ def asAbs(x: NDArray):
 
 #  INFO: Hamiltonian
 
-H = V - Lap * -1.0 * hbar * hbar / 2.0 / mass
+H = V - Lap * 1.0 * hbar * hbar / 2.0 / mass
 
 #  INFO: Eigenstates
 
@@ -55,11 +55,24 @@ def gauss(x: NDArray, x0: float, s: float):
     return y / la.norm(y)
 
 
-Psi = np.matrix(gauss(xs, 0.65, 0.03)).T
-coeffs = Phi.T * Psi
+H_new = np.diag(E)
+
+
+Psi = np.matrix(gauss(xs, 0.65, 0.03)).H
+coeffs = Phi.H * Psi
 
 
 sort_inds = np.argsort(np.abs(coeffs.A1))[::-1]
 temp_coeffs = coeffs[sort_inds]
-for i in range(30):
-    print(la.norm(temp_coeffs.A1[:i]))
+
+ts, dt = np.linspace(0, 0.1, 100, retstep=True)
+
+
+def evolve(co: np.matrix, t: float):
+    return la.expm(-1j * H_new * t / hbar) * co
+
+
+for t in ts:
+    plt.plot(xs, np.abs(Phi * evolve(coeffs, t)))
+
+plt.show()
