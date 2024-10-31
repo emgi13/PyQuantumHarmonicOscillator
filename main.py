@@ -23,11 +23,11 @@ vs = 0.5 * k * np.power((xs - 0.5), 2)
 vs[+0] = end_k
 vs[-1] = end_k
 print(vs)
-V = np.diag(vs)
+V = np.matrix(np.diag(vs))
 
 #  INFO: Laplacian
 
-Lap = (
+Lap = np.matrix(
     np.diag(np.ones((size - 1,)) * 1.0, k=+1)
     + np.diag(np.ones((size - 1,)) * 1.0, k=-1)
     - np.diag(np.ones((size,)) * 2.0, k=0)
@@ -48,7 +48,7 @@ E, Phi = la.eigh(H)
 
 inds = np.argsort(E)
 E = E[inds]
-Phi = Phi[:, inds]
+Phi = np.matrix(Phi[:, inds])
 
 
 def gauss(x: NDArray, x0: float, s: float):
@@ -56,6 +56,6 @@ def gauss(x: NDArray, x0: float, s: float):
     return y / la.norm(y)
 
 
-Psi = gauss(xs, 0.65, 0.03)
-plt.plot(xs, Psi)
-plt.show()
+Psi = np.matrix(gauss(xs, 0.65, 0.03)).T
+coeffs = Phi.T * Psi
+print(coeffs)
