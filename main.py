@@ -50,7 +50,12 @@ inds = np.argsort(E)
 E = E[inds]
 Phi = Phi[:, inds]
 
-for i in range(10):
-    plt.plot(xs, asAbs(Phi[:, i]), label=f"{i:3d}: {E[i]}")
-plt.legend()
+
+def gauss(x: NDArray, x0: float, s: float):
+    y = np.exp(-0.5 * np.power((x - x0) / s, 2))
+    return y / la.norm(y)
+
+
+Psi = gauss(xs, 0.65, 0.03)
+plt.plot(xs, Psi)
 plt.show()
