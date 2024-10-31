@@ -22,7 +22,6 @@ vs = 0.5 * k * np.power((xs - 0.5), 2)
 # vs = np.zeros((size,))
 vs[+0] = end_k
 vs[-1] = end_k
-print(vs)
 V = np.matrix(np.diag(vs))
 
 #  INFO: Laplacian
@@ -46,9 +45,9 @@ H = V - Lap * -1.0 * hbar * hbar / 2.0 / mass
 
 E, Phi = la.eigh(H)
 
-inds = np.argsort(E)
-E = E[inds]
-Phi = np.matrix(Phi[:, inds])
+sort_inds = np.argsort(E)
+E = E[sort_inds]
+Phi = np.matrix(Phi[:, sort_inds])
 
 
 def gauss(x: NDArray, x0: float, s: float):
@@ -58,4 +57,9 @@ def gauss(x: NDArray, x0: float, s: float):
 
 Psi = np.matrix(gauss(xs, 0.65, 0.03)).T
 coeffs = Phi.T * Psi
-print(coeffs)
+
+
+sort_inds = np.argsort(np.abs(coeffs.A1))[::-1]
+temp_coeffs = coeffs[sort_inds]
+for i in range(30):
+    print(la.norm(temp_coeffs.A1[:i]))
