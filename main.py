@@ -59,30 +59,53 @@ def evolve(co: np.matrix, t: float):
     return la.expm(-1j * H_new * t / hbar) * co
 
 
-LIMIT = 0.145
+for i in range(1, 21):
+    ys = temp_coeffs[:i]
+    n = ys.H * ys
+    print(f"{i:2d} : {n[0,0]*100:.2f}")
+
+# Shows that the top 10 eigenstates (by coeffs) make up >99% of the wavefunctions
+CUTOFF = 11
+
+states = Phi[:, :CUTOFF]
+cfs = temp_coeffs[:CUTOFF]
+
+
+LIMIT = 0.07
+
+SPACE = 0.1
 
 # Create a 3D plot
 fig = plt.figure(figsize=(8, 6), dpi=150)
 ax = fig.add_subplot(111, projection="3d")
 ax.set_xlim(0, 1)  # Set x limits
-ax.set_ylim(-LIMIT, LIMIT)  # Set y limits for Re(Phi * coeffs)
-ax.set_zlim(-LIMIT, LIMIT)  # Set z limits for Im(Phi * coeffs)
+ax.set_ylim(-LIMIT, LIMIT + SPACE)  # Set y limits for Re(Phi * coeffs)
+ax.set_zlim(-LIMIT, LIMIT + SPACE)  # Set z limits for Im(Phi * coeffs)
 ax.set_xlabel(r"$x$")
 ax.set_ylabel(r"$\Re(\Psi)$")
 ax.set_zlabel(r"$\Im(\Psi)$")
+ax.set_yticklabels([])
+ax.set_zticklabels([])
 
-# Initialize the line
-(line,) = ax.plot([], [], [], color="g")
+# Initialize the lines
+lines = [ax.plot([], [], [], color=f"C{i}")[0] for i in range(0, CUTOFF)]
 
 
 # Update function for animation
-def update(frame):
+def update(_frame):
     global coeffs
-    coeffs = M * coeffs  # Update coeffs
-    complex_values = Phi * coeffs  # Calculate complex values
-    line.set_data(xs, np.real(complex_values.A1))  # Set x and y data (Re)
-    line.set_3d_properties(np.imag(complex_values.A1))  # Set z data (Im)
-    return (line,)
+    coeffs = M @ coeffs
+    for i, line in enumerate(lines[1:]):
+        c = np.zeros_like(coeffs)
+        c[sort_inds[i]] = coeffs[sort_inds[i]]
+        ys = Phi * c  # Calculate complex values for each line
+        line.set_data(xs, np.real(ys.A1))  # Set x and y data (Re)
+        line.set_3d_properties(np.imag(ys.A1))  # Set z data (Im)
+    line = lines[0]
+    ys = Phi * coeffs
+    line.set_data(xs, np.real(ys.A1) + SPACE)  # Set x and y data (Re)
+    line.set_3d_properties(np.imag(ys.A1) + SPACE)  # Set z data (Im)
+    return lines
 
 
 plt.tight_layout(pad=0.5)
@@ -91,7 +114,7 @@ ani = FuncAnimation(fig, update, frames=len(ts), blit=True, interval=100)
 
 # Show the animation
 ani.save(
-    "wavefunc.gif",
+    "states.gif",
     writer=PillowWriter(fps=30),
     savefig_kwargs={"pad_inches": 0},
 )
