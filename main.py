@@ -2,7 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 from scipy import linalg as la
 
 # INFO: PARAMETERS
@@ -59,19 +59,20 @@ def evolve(co: np.matrix, t: float):
     return la.expm(-1j * H_new * t / hbar) * co
 
 
+LIMIT = 0.145
+
 # Create a 3D plot
-fig = plt.figure()
+fig = plt.figure(figsize=(8, 6), dpi=150)
 ax = fig.add_subplot(111, projection="3d")
 ax.set_xlim(0, 1)  # Set x limits
-ax.set_ylim(-1, 1)  # Set y limits for Re(Phi * coeffs)
-ax.set_zlim(-1, 1)  # Set z limits for Im(Phi * coeffs)
-ax.set_title("3D Animated Plot")
-ax.set_xlabel("x")
-ax.set_ylabel("Re(Phi * coeffs)")
-ax.set_zlabel("Im(Phi * coeffs)")
+ax.set_ylim(-LIMIT, LIMIT)  # Set y limits for Re(Phi * coeffs)
+ax.set_zlim(-LIMIT, LIMIT)  # Set z limits for Im(Phi * coeffs)
+ax.set_xlabel(r"$x$")
+ax.set_ylabel(r"$\Re(\Psi)$")
+ax.set_zlabel(r"$\Im(\Psi)$")
 
 # Initialize the line
-(line,) = ax.plot([], [], [], color="b")
+(line,) = ax.plot([], [], [], color="g")
 
 
 # Update function for animation
@@ -90,7 +91,7 @@ ani = FuncAnimation(fig, update, frames=len(ts), blit=True, interval=100)
 
 # Show the animation
 ani.save(
-    "abs.gif",
+    "wavefunc.gif",
     writer=PillowWriter(fps=30),
     savefig_kwargs={"pad_inches": 0},
 )
