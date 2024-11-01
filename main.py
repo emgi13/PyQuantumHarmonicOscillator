@@ -90,6 +90,16 @@ ax.set_zticklabels([])
 # Initialize the lines
 lines = [ax.plot([], [], [], color=f"C{i}")[0] for i in range(0, CUTOFF)]
 
+# Create a square subplot for the 2D radial plot
+ax2 = fig.add_axes((0.21, 0.6, 0.2, 0.2), polar=True)
+ax2.set_xticklabels([])
+ax2.set_yticklabels([])
+ax2.set_ylim(0, np.max(np.abs(cfs)) * 1.1)
+
+# Initialize radial lines and circles
+radial_lines = [ax2.plot([], [], color=f"C{i}")[0] for i in range(CUTOFF)]
+radial_circles = [ax2.plot([], [], "o", color=f"C{i}")[0] for i in range(CUTOFF)]
+
 
 # Update function for animation
 def update(_frame):
@@ -105,10 +115,17 @@ def update(_frame):
     ys = Phi * coeffs
     line.set_data(xs, np.real(ys.A1) + SPACE)  # Set x and y data (Re)
     line.set_3d_properties(np.imag(ys.A1) + SPACE)  # Set z data (Im)
-    return lines
+
+    # Update the radial plot
+    for i in range(CUTOFF):
+        angle = np.angle(coeffs[sort_inds[i]][0, 0])
+        magnitude = np.abs(coeffs[sort_inds[i]][0, 0])
+        radial_lines[i].set_data([0, angle], [0, magnitude])
+        radial_circles[i].set_data([angle], [magnitude])
+
+    return lines + radial_lines + radial_circles
 
 
-plt.tight_layout(pad=0.5)
 # Create the animation
 ani = FuncAnimation(fig, update, frames=len(ts), blit=True, interval=100)
 
@@ -118,4 +135,3 @@ ani.save(
     writer=PillowWriter(fps=30),
     savefig_kwargs={"pad_inches": 0},
 )
-print("SAVED")
