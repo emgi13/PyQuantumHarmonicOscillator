@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 from scipy import linalg as la
 
 
@@ -9,7 +9,7 @@ from scipy import linalg as la
 
 size = 1_000 + 1
 end_k = 1e8
-k = 1e6
+k = 1e5
 mass = 1
 hbar = 1
 
@@ -66,7 +66,7 @@ coeffs = Phi.H * Psi
 sort_inds = np.argsort(np.abs(coeffs.A1))[::-1]
 temp_coeffs = coeffs[sort_inds]
 
-ts, dt = np.linspace(0, 0.1, 300, retstep=True)
+ts, dt = np.linspace(0, 0.1, 600, retstep=True)
 
 M = la.expm(-1j * H_new * dt / hbar)
 
@@ -75,23 +75,32 @@ def evolve(co: np.matrix, t: float):
     return la.expm(-1j * H_new * t / hbar) * co
 
 
-fig, ax = plt.subplots()
-(line,) = ax.plot(xs, np.abs(Phi * coeffs), color="b")
-ax.set_ylim(0, 0.16)
-ax.set_title("Animated Plot")
-ax.set_xlabel("x")
-ax.set_ylabel("Amplitude")
+fig, ax = plt.subplots(figsize=(8, 6), dpi=150)
+ys = Phi * coeffs
+(line,) = ax.plot(xs, np.abs(ys), color="g")
+ax.set_ylim(0, 0.145)
+ax.set_xlim(-0.001, 1.001)
+ax.set_xlabel(r"$x$")
+ax.set_ylabel(r"$\left| \Psi \right|$")
+ax.grid(True)
 
 
 # Update function for animation
 def update(_frame: int):
     global coeffs
     coeffs = M * coeffs
-    line.set_ydata(np.abs(Phi * coeffs))
+    ys = Phi * coeffs
+    line.set_ydata(np.abs(ys))
     return (line,)
 
 
+plt.tight_layout(pad=0.5)
 # Create the animation
 ani = FuncAnimation(fig, update, frames=len(ts), blit=True, interval=100)
 # Show the animation
-plt.show()
+ani.save(
+    "abs.gif",
+    writer=PillowWriter(fps=30),
+    savefig_kwargs={"pad_inches": 0},
+)
+print("SAVED")
